@@ -14,8 +14,8 @@ x-common-service: &common-service
         cpus: '12'
         memory: 12G
       reservations:
-        cpus: '5'
-        memory: 6G
+        cpus: '10'
+        memory: 8G
   networks:
     - backend
   extra_hosts:
@@ -56,10 +56,10 @@ services:
       resources:
         limits:
           cpus: '12'
-          memory: 10G
+          memory: 15G
         reservations:
-          cpus: '6'
-          memory: 3G
+          cpus: '8'
+          memory: 4G
     environment:
       PORT: 3000
       PROXY_SERVER: ${PROXY_SERVER}
@@ -87,7 +87,7 @@ services:
       resources:
         limits:
           cpus: '16'
-          memory: 20G
+          memory: 18G
         reservations:
           cpus: '10'
           memory: 10G

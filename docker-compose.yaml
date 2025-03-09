@@ -1,20 +1,25 @@
 name: firecrawl
-
 x-common-service: &common-service
   # NOTE: If you want to build the service locally,
   # uncomment the build: statement and comment out the image: statement
   # image: ghcr.io/mendableai/firecrawl
   build: apps/api
-
   ulimits:
     nofile:
       soft: 65535
       hard: 65535
+  deploy:
+    resources:
+      limits:
+        cpus: '2'
+        memory: 4G
+      reservations:
+        cpus: '0.5'
+        memory: 2G
   networks:
     - backend
   extra_hosts:
     - "host.docker.internal:host-gateway"
-
 x-common-env: &common-env
   REDIS_URL: ${REDIS_URL:-redis://redis:6379}
   REDIS_RATE_LIMIT_URL: ${REDIS_URL:-redis://redis:6379}
@@ -44,10 +49,17 @@ x-common-env: &common-env
   SEARXNG_ENDPOINT: ${SEARXNG_ENDPOINT}
   SEARXNG_ENGINES: ${SEARXNG_ENGINES}
   SEARXNG_CATEGORIES: ${SEARXNG_CATEGORIES}
-
 services:
   playwright-service:
     build: apps/playwright-service-ts
+    deploy:
+      resources:
+        limits:
+          cpus: '2.5'
+          memory: 6G
+        reservations:
+          cpus: '0.75'
+          memory: 3G
     environment:
       PORT: 3000
       PROXY_SERVER: ${PROXY_SERVER}
@@ -56,7 +68,6 @@ services:
       BLOCK_MEDIA: ${BLOCK_MEDIA}
     networks:
       - backend
-
   api:
     <<: *common-service
     environment:
@@ -70,9 +81,16 @@ services:
     ports:
       - "${PORT:-3002}:${INTERNAL_PORT:-3002}"
     command: [ "pnpm", "run", "start:production" ]
-
   worker:
     <<: *common-service
+    deploy:
+      resources:
+        limits:
+          cpus: '4'
+          memory: 8G
+        reservations:
+          cpus: '1'
+          memory: 4G
     environment:
       <<: *common-env
       FLY_PROCESS_GROUP: worker
@@ -81,18 +99,23 @@ services:
       - playwright-service
       - api
     command: [ "pnpm", "run", "workers" ]
-
   redis:
     # NOTE: If you want to use Valkey (open source) instead of Redis (source available),
     # uncomment the Valkey statement and comment out the Redis statement.
     # Using Valkey with Firecrawl is untested and not guaranteed to work. Use with caution.
     image: redis:alpine
     # image: valkey/valkey:alpine
-
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 2G
+        reservations:
+          cpus: '0.25'
+          memory: 1G
     networks:
       - backend
     command: redis-server --bind 0.0.0.0
-
 networks:
   backend:
     driver: bridge

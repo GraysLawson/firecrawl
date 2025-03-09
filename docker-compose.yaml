@@ -12,10 +12,10 @@ x-common-service: &common-service
     resources:
       limits:
         cpus: '12'
-        memory: 4G
+        memory: 12G
       reservations:
         cpus: '5'
-        memory: 2G
+        memory: 6G
   networks:
     - backend
   extra_hosts:
